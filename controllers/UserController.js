@@ -25,7 +25,11 @@ const user = {
     const user = new User({
       login: req.body.login,
       email: req.body.email,
-      password: hashedPassword
+      password: hashedPassword,
+      name: req.body.name,
+      lastName: req.body.lastName,
+      city: req.body.city,
+      address: req.body.address
     });
 
     try {
@@ -47,16 +51,27 @@ const user = {
     if (!user)
       return res.status(400).send('Account with this email does not exists');
 
-    const validPassword = await bcrypt.compare(req.body.password, user.password);
-    if(!validPassword) return res.status(400).send('Invalid password');
+    const validPassword = await bcrypt.compare(
+    req.body.password,
+    user.password
+    );
+    if (!validPassword) return res.status(400).send('Invalid password');
 
-    const token = jwt.sign({_id: user._id}, process.env.TOKEN_SECRET);
+    const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
     res.header('auth-token', token).send(token);
   },
   userLogout: (req, res) => {
     res.removeHeader('auth-token');
     res.send('User logout');
-  }
+  },
+  getUserInfo: async (req, res) => {
+      const {_id} = req.user;
+      const user = await User.findOne({_id: _id});
+
+      if(!user) { return res.status(404).send('User not found')}
+
+      res.send(user);
+      }
 };
 
 module.exports = user;
