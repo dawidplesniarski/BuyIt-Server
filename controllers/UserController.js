@@ -63,7 +63,7 @@ const user = {
    });
     socket.getIO().emit('userLogged', { token });
 
-    res.header('auth-token', token).send(token);
+    res.header('auth-token', token).send({token: token, id: user._id});
   },
   userLogout: (req, res) => {
     res.removeHeader('auth-token');

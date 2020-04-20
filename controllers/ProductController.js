@@ -1,4 +1,6 @@
 const Product = require('../models/Product');
+const socket = require('../socket');
+
 
 const product = {
   getAllProducts: async (req, res) => {
@@ -35,12 +37,35 @@ const product = {
       const savedProduct = await newProduct.save();
       const updatedAllProducts = await Product.find();
       console.log(updatedAllProducts);
+      socket.getIO().emit('productAdded', {savedProduct: savedProduct});
+
 
       res.status(200).send(savedProduct);
     } catch (error) {
       res.status(500).send(error);
     }
-  }
+  },
+  removeProduct: async (req, res) => {
+      const removedProduct = await Product.findOneAndDelete({
+        $and: [{ _id: req.body.id }, { userID: req.user._id }]
+      });
+
+      if (!removedProduct) {
+        res.status(400).send('Could not delete');
+      } else {
+        res.status(200).send('Deleted product successfully');
+
+        socket.getIO().emit('productRemoved', {removedProduct: removedProduct})
+
+      }
+    },
+    getSpecificProduct: async (req, res) => {
+      const foundProduct = await Product.find({_id: req.params.id});
+
+      if(!foundProduct) { res.status(404).send('Product not found')}
+
+      res.status(200).send(foundProduct);
+      }
 };
 
 module.exports = product;
