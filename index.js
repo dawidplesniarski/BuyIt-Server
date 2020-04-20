@@ -1,11 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const socket = require('./socket');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/product');
-
+require('dotenv').config();
 dotenv.config();
 
 const app = express();
@@ -28,7 +27,7 @@ connection.on('error', err => {
 });
 connection.once('open', () => {
   console.log('Connected with database');
-  const server = app.listen(3000, () => console.log('Server is up'));
+  const server = app.listen(process.env.PORT || 3000, () => console.log('Server is up'));
   const io = socket.init(server);
   io.on('connection', socket => {
     console.log('User connected');
