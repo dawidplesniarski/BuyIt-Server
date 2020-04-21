@@ -5,9 +5,14 @@ const socket = require('../socket');
 
 const product = {
   getAllProducts: async (req, res) => {
+      const queryPageNumber = parseInt(req.query.page);
+
     try {
-      const products = await Product.find();
-      res.status(200).send(products);
+     const productsLength = await Product.count();
+    const products = await Product.find()
+            .skip(queryPageNumber > 0 ? (queryPageNumber - 1) * 10 : 0)
+            .limit(10);
+          res.status(200).send({ products, productsLength });
     } catch (error) {
       res.status(500).send(error);
     }
@@ -22,12 +27,20 @@ const product = {
   },
   getAllCategoryProducts: async (req, res) => {
     /* '/product/getAllCategoryProducts/:category?page=1' */
+        const queryPageNumber = parseInt(req.query.page);
     try {
-      const allCategoryProducts = await Product.find({
+      const productsLength = await Product.find({
         category: req.params.category
-      });
+}).countDocuments();
 
-      res.send(allCategoryProducts);
+const products = await Product.find({
+        category: req.params.category
+      })
+        .skip(queryPageNumber > 0 ? (queryPageNumber - 1) * 10 : 0)
+        .limit(10);
+
+      res.send({ products, productsLength });
+
     } catch (e) {
       res.status(400).send(`Error ${e}`);
     }
@@ -64,8 +77,9 @@ const product = {
       } else {
         res.status(200).send('Deleted product successfully');
 
-
-      socket.getIO().emit('productRemoved', { removedProductId: removedProduct._id });
+        socket
+        .getIO()
+        .emit('productRemoved', { removedProductId: removedProduct._id });
       }
     },
     getSpecificProduct: async (req, res) => {
@@ -80,7 +94,7 @@ const product = {
       },
         getSearchedProducts: async (req, res) => {
           const query = req.params.query.split('_').join(' ');
-          const products = await Product.find({ name: {$regex: `.*${query}.*`} });
+    const products = await Product.find({ name: { $regex: `.*${query}.*` } });
 
           if (!products) {
             res.status(404).send('Products not found');
