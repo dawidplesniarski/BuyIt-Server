@@ -29,7 +29,12 @@ const productSchema = new mongoose.Schema({
   },
   image: {
     type: String
-  }
+  },
+   },
+    reserved: {
+      type: Boolean,
+      default: false
+   }
 });
 
 module.exports = {
