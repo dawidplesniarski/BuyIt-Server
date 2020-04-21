@@ -9,33 +9,30 @@ const {
 
 const user = {
   userRegister: async (req, res) => {
-
     const { error } = registerValidation(req.body);
     if (error) {
       return res.status(422).send(`Problem with data validation: ${error}`);
     }
 
-    const isLoginInDatabase = await User.findOne({ login: req.body.login });
-    if (isAlreadyCreated || isLoginInDatabase) {
+    const isAlreadyCreated = await User.findOne({ email: req.body.email });
+
+    if (isAlreadyCreated) {
       return res
         .status(409)
-        .send('Account with this email or login already exists');
+        .send('Account with this email already exists');
     }
-
-    if (isAlreadyCreated)
-      return res.status(400).send('Account with this email already exists');
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
     const user = new User({
-      login: req.body.login,
       email: req.body.email,
       password: hashedPassword,
       name: req.body.name,
       lastName: req.body.lastName,
       city: req.body.city,
-      address: req.body.address
+      address: req.body.address,
+      country: req.body.country
     });
 
     try {
@@ -57,13 +54,12 @@ const user = {
       return res.status(400).send('Account with this email does not exists');
 
     const validPassword = await bcrypt.compare(
-    req.body.password,
-    user.password
+      req.body.password,
+      user.password
     );
     if (!validPassword) return res.status(400).send('Invalid password');
 
     const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
-
     socket.getIO().emit('userLogged', { token });
     res.header('auth-token', token).send({ token: token, id: user._id });
   },
@@ -72,31 +68,33 @@ const user = {
     res.send('User logout');
   },
   userUpdate: async (req, res) => {
-      const { _id } = req.user;
+    const { _id } = req.user;
 
-      const updatedUser = await User.updateOne(
-        { _id: _id },
-        {
-          name: req.body.name,
-          lastName: req.body.lastName,
-          city: req.body.city,
-          address: req.body.address
-        }
-      );
-      if (!updatedUser) {
+    const updatedUser = await User.updateOne(
+      { _id: _id },
+      {
+        name: req.body.name,
+        lastName: req.body.lastName,
+        city: req.body.city,
+        address: req.body.address,
+        country: req.body.country
+      }
+    );
+    if (!updatedUser) {
       return res.status(400).send('Could not update');
-      }
-      res.status(200).send('Updated');
-    },
+    }
+    res.status(200).send(updatedUser);
+  },
   getUserInfo: async (req, res) => {
-      const { _id } = req.user;
-      const user = await User.findOne({ _id: _id });
-      if (!user) {
-            return res.status(404).send('User not found');
-      }
+    const { _id } = req.user;
+    const user = await User.findOne({ _id: _id });
 
-      res.send(user);
-      }
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    res.send(user);
+  }
 };
 
 module.exports = user;

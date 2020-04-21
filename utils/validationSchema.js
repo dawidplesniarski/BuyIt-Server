@@ -2,9 +2,6 @@ const Joi = require('joi');
 
 const registerValidation = body => {
   const validationSchema = {
-    login: Joi.string()
-      .min(3)
-      .required(),
     email: Joi.string()
       .min(6)
       .required()
@@ -13,17 +10,19 @@ const registerValidation = body => {
       /^(?=.*\d)(?=.*[a-z])[\w~@#$%^&*+=`|{}:;!.?\"()\[\]-]{8,25}$/
     ),
     name: Joi.string()
-          .min(2)
-          .required(),
-        lastName: Joi.string()
-          .min(2)
-          .required(),
-        city: Joi.string()
-          .min(2)
-          .required(),
-        address: Joi.string()
-          .min(2)
-          .required()
+      .min(2)
+      .required(),
+    lastName: Joi.string()
+      .min(2)
+      .required(),
+    city: Joi.string()
+      .min(2)
+      .required(),
+    address: Joi.string()
+      .min(2)
+      .required(),
+    country: Joi.string()
+        .required(),
   };
   return Joi.validate(body, validationSchema);
 };

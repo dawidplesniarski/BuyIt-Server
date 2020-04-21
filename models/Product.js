@@ -1,13 +1,10 @@
 const mongoose = require('mongoose');
+
 const PRODUCT_CATEGORY = ['electronics', 'fashion', 'others'];
 
 const productSchema = new mongoose.Schema({
   userID: {
     type: mongoose.Schema.ObjectId,
-    required: true
-  },
-  userLogin: {
-    type: String,
     required: true
   },
   category: {
@@ -30,11 +27,10 @@ const productSchema = new mongoose.Schema({
   image: {
     type: String
   },
-   },
-    reserved: {
-      type: Boolean,
-      default: false
-   }
+  reserved: {
+    type: Boolean,
+    default: false
+  }
 });
 
 module.exports = {
